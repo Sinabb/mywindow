@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <sstream>
 
 const wchar_t gClassName[] = L"MyWindowClass";
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -70,7 +71,22 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
 
     return msg.wParam; // 윈도우에서는 반드시 리턴해줘야함
 }
+void OnPAint(HWND hwnd)
+{
+    PAINTSTRUCT ps;
+    HDC hdc = BeginPaint(hwnd, &ps);
 
+    HPEN redpen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+    HBRUSH hatchbrush = CreateHatchBrush(HS_CROSS, RGB(255, 0, 0));
+
+    SelectObject(hdc, redpen);
+    SelectObject(hdc, hatchbrush);
+    Rectangle(hdc, 0, 0, 100, 100);
+
+    DeleteObject(hatchbrush);
+    DeleteObject(redpen);
+    EndPaint(hwnd, &ps);
+}
 /*
     4. 윈도우 프로시저 작성
 */
@@ -79,6 +95,28 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 {
     switch (message)
     {
+    case WM_PAINT:
+    {
+        OnPAint(hwnd);
+        break;
+    }
+    case WM_KEYDOWN:
+    {
+        std::ostringstream oss;
+        oss << "virtual keycode" << wParam << std::endl;
+        OutputDebugStringA(oss.str().c_str());
+        break;
+    }
+    case WM_LBUTTONDOWN:
+    {
+        std::ostringstream oss;
+        oss << "x : " << LOWORD(lParam) << ", y : " << HIWORD(lParam) << std::endl;
+        OutputDebugStringA(oss.str().c_str());
+        break;
+    }
+ 
+        
+
     case WM_CLOSE:
         DestroyWindow(hwnd);
         break;
