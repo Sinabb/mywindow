@@ -1,5 +1,9 @@
 #include <windows.h>
 #include <sstream>
+#include <gdiplus.h>
+
+#pragma comment (lib, "Gdiplus.lib")
+using namespace Gdiplus;
 
 const wchar_t gClassName[] = L"MyWindowClass";
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -16,6 +20,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
                 _In_ LPSTR lpCmdLine,
                 _In_ int nCmdShow)
 {
+    Gdiplus::GdiplusStartupInput gpsi;
+    ULONG_PTR gdiToken;
+    Gdiplus::GdiplusStartup(&gdiToken, &gpsi, nullptr);
+
        //1. 윈도우 클래스 등록
     WNDCLASSEX wc{};
     // important
@@ -35,6 +43,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
         return 0;
     }
        //2. 윈도우를 생성
+    RECT wr = { 0,0,640,480 };
+    AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
+    
     HWND hwnd;
     hwnd = CreateWindowEx(
         0,
@@ -68,7 +79,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance,
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-
+    Gdiplus::GdiplusShutdown(gdiToken);
     return msg.wParam; // 윈도우에서는 반드시 리턴해줘야함
 }
 void OnPAint(HWND hwnd)
@@ -76,7 +87,7 @@ void OnPAint(HWND hwnd)
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(hwnd, &ps);
 
-    HPEN redpen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+    /*HPEN redpen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
     HBRUSH hatchbrush = CreateHatchBrush(HS_CROSS, RGB(255, 0, 0));
 
     SelectObject(hdc, redpen);
@@ -85,6 +96,17 @@ void OnPAint(HWND hwnd)
 
     DeleteObject(hatchbrush);
     DeleteObject(redpen);
+    EndPaint(hwnd, &ps);*/
+
+    Gdiplus::Pen redPen(Gdiplus::Color(255,255,0,0));
+    //Gdiplus::HatchBrush hatchjBrush(Gdiplus::HatchStyle::HatchStyleCross, Gdiplus::Color(255, 255, 0, 0);
+    Gdiplus::HatchBrush hatchjBrush(HatchStyle::HatchStyleCross,Color(255, 255, 0, 0));
+
+    Graphics graphics(hdc);
+    //graphics.DrawRectangle(&redPen, 0 , 0 ,100, 100);
+    Image image(L"image.png");
+    graphics.DrawImage(&image, 0, 0,640, 480);
+
     EndPaint(hwnd, &ps);
 }
 /*
